@@ -6,6 +6,10 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
+app.get("/", (req, res) => {
+  res.sendFile(process.cwd() + "/public/index.html");
+});
+
 const API_KEY = process.env.OPENAI_API_KEY;
 
 app.post("/chat", async (req, res) => {
