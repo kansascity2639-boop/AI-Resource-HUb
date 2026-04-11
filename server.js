@@ -6,10 +6,6 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-app.get("/", (req, res) => {
-  res.sendFile(process.cwd() + "/public/index.html");
-});
-
 const API_KEY = process.env.OPENAI_API_KEY;
 
 app.post("/chat", async (req, res) => {
@@ -27,19 +23,26 @@ app.post("/chat", async (req, res) => {
         messages: [
           {
             role: "system",
-            content: `You are an expert AP tutor for ${course}. Explain clearly and simply.`
+            content: `You are an expert AP tutor for ${course}. Explain clearly.`
           },
-          { role: "user", content: message }
+          {
+            role: "user",
+            content: message
+          }
         ]
       })
     });
 
     const data = await response.json();
 
-    res.json(data);
+    // 🔥 IMPORTANT FIX: extract ONLY the text
+    const reply = data?.choices?.[0]?.message?.content;
+
+    res.json({ reply });
+
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Server error" });
+    res.status(500).json({ reply: "Server error" });
   }
 });
 
