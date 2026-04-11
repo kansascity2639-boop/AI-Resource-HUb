@@ -1,123 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>AI AP Hub</title>
+<meta charset="UTF-8">
+<title>AI AP Hub</title>
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      display: flex;
-      height: 100vh;
-      background: #0f172a;
-      color: white;
-    }
+<style>
+body {
+  margin: 0;
+  font-family: Arial;
+  display: flex;
+  height: 100vh;
+  background: #0f172a;
+  color: white;
+}
 
-    .sidebar {
-      width: 260px;
-      background: #1e293b;
-      padding: 10px;
-      overflow-y: auto;
-    }
+.sidebar {
+  width: 250px;
+  background: #1e293b;
+  padding: 10px;
+}
 
-    .sidebar h3 {
-      margin-top: 15px;
-      font-size: 14px;
-      color: #93c5fd;
-    }
+.sidebar button {
+  width: 100%;
+  margin: 5px 0;
+  padding: 10px;
+  background: #334155;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
 
-    .sidebar button {
-      width: 100%;
-      margin: 5px 0;
-      padding: 10px;
-      background: #334155;
-      border: none;
-      color: white;
-      cursor: pointer;
-      border-radius: 6px;
-    }
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
 
-    .sidebar button:hover {
-      background: #475569;
-    }
+.chat {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+}
 
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
+.inputArea {
+  display: flex;
+  padding: 10px;
+  background: #1e293b;
+}
 
-    .chat {
-      flex: 1;
-      padding: 15px;
-      overflow-y: auto;
-    }
+input {
+  flex: 1;
+  padding: 10px;
+}
 
-    .inputArea {
-      display: flex;
-      padding: 10px;
-      background: #1e293b;
-    }
-
-    input {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 6px;
-      outline: none;
-    }
-
-    button.send {
-      margin-left: 10px;
-      padding: 10px 15px;
-      background: #3b82f6;
-      border: none;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-
-    button.send:hover {
-      background: #2563eb;
-    }
-
-    .msg {
-      margin: 10px 0;
-    }
-
-    .user {
-      color: #60a5fa;
-    }
-
-    .ai {
-      color: #34d399;
-    }
-  </style>
+button {
+  padding: 10px;
+  background: #3b82f6;
+  border: none;
+  color: white;
+}
+</style>
 </head>
 
 <body>
 
 <div class="sidebar">
-  <h3>Math</h3>
-  <button onclick="setCourse('AP Calculus BC')">Calculus BC</button>
-  <button onclick="setCourse('AP Precalculus')">Precalculus</button>
-
-  <h3>Science</h3>
+  <button onclick="setCourse('AP Calculus BC')">Calc BC</button>
   <button onclick="setCourse('AP Physics')">Physics</button>
   <button onclick="setCourse('AP Chemistry')">Chemistry</button>
-
-  <h3>History</h3>
-  <button onclick="setCourse('AP US History')">US History</button>
-  <button onclick="setCourse('AP European History')">European History</button>
-
-  <h3>English</h3>
-  <button onclick="setCourse('AP English Language')">Language</button>
-  <button onclick="setCourse('AP English Literature')">Literature</button>
-
-  <h3>Other</h3>
-  <button onclick="setCourse('AP Psychology')">Psychology</button>
+  <button onclick="setCourse('AP US History')">USH</button>
 </div>
 
 <div class="main">
@@ -125,8 +76,8 @@
   <div class="chat" id="chat"></div>
 
   <div class="inputArea">
-    <input id="input" placeholder="Ask your AP question..." />
-    <button class="send" onclick="send()">Send</button>
+    <input id="input" placeholder="Ask a question..." />
+    <button onclick="send()">Send</button>
   </div>
 
 </div>
@@ -136,47 +87,32 @@ let course = "General";
 
 function setCourse(c) {
   course = c;
-  addMessage("System", "Switched to " + c, "ai");
+  add("System", "Switched to " + c);
 }
 
-function addMessage(sender, text, type) {
+function add(sender, text) {
   const chat = document.getElementById("chat");
-  chat.innerHTML += `
-    <div class="msg ${type}">
-      <b>${sender}:</b> ${text}
-    </div>
-  `;
+  chat.innerHTML += `<p><b>${sender}:</b> ${text}</p>`;
   chat.scrollTop = chat.scrollHeight;
 }
 
 async function send() {
   const input = document.getElementById("input");
   const msg = input.value;
-  if (!msg) return;
-
   input.value = "";
 
-  addMessage("You", msg, "user");
+  add("You", msg);
 
-  try {
-    const res = await fetch("/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: msg, course })
-    });
+  const res = await fetch("/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: msg, course })
+  });
 
-    const data = await res.json();
+  const data = await res.json();
 
-    const reply =
-      data.choices?.[0]?.message?.content ||
-      data.error ||
-      "No response";
-
-    addMessage("AI", reply, "ai");
-
-  } catch (err) {
-    addMessage("AI", "Server error connecting to backend", "ai");
-  }
+  // 🔥 FIX: use "reply", not full object
+  add("AI", data.reply);
 }
 </script>
 
